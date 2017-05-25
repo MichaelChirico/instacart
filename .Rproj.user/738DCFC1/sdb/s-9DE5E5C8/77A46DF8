@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "library(data.table)\nff = list.files('/media/data_drive/instacart_2017_05_01',\n                pattern = '\\\\.csv', full.names = TRUE)\nnames(ff) = gsub('.*/(.*)\\\\.csv', '\\\\1', ff)\n\naisles = fread(ff['aisles'])\ndepartments = fread(ff['departments'])\nproducts = fread(ff['products'], key = 'product_id')\norders = fread(ff['orders'])\ncarts = fread(ff['order_products__prior'])\n\nproducts[aisles, aisle := i.aisle, on = 'aisle_id']\nproducts[departments, department := i.department, on = 'department_id']\n\ncarts = merge(carts, products, by = 'product_id', all.x = TRUE)\ncarts = merge(carts, orders, by = 'order_id', all.x = TRUE)\nsetkey(carts, user_id, order_number, add_to_cart_order)\n\npdf('~/Desktop/yumm.pdf',\n    height = 10, width = 10)\ncarts[ , add_to_cart_order[.N], by = order_id][ , plot(table(V1))]\ndev.off()\n\ncarts[department == 'alcohol', .N, keyby = .(V = order_dow, aisle)\n      ][ , dcast(.SD, V ~ aisle, value.var = 'N')\n         ][ , {\n           y = .SD[ , !\"V\"]\n           matplot(V, y)\n         }]\ncarts[ , .(c = sum(grepl('Condom', product_name, fixed = TRUE)), \n           l = sum(grepl('Personal Lubricant', product_name, fixed = TRUE))),\n       keyby = order_dow\n       ][ , matplot(order_dow, cbind(c, l))]\n\n#user behavior doesn't change _much_ with longevity -- long-time\n#  users buy same # of products as beginners (save for shortening tails)\ncarts[ , .(order_number[1L], .N), keyby = order_id][ , {boxplot(N ~ V1, log = 'y'); NULL}]\ncarts[ , plot(table(order_number, department))]\ncarts[!department_id %in% c(4L, 7L, 16L, 19L), plot(table(order_number, department))]\n\n# veteran customers order more frequently\ncarts[order_number > 1L, .SD[1L], by = order_id, .SDcols = c('order_number', 'days_since_prior_order')\n      ][ , {boxplot(days_since_prior_order ~ order_number); NULL}]\n\ncarts[ , mean(reordered), keyby = order_number\n       ][ , plot(order_number, V1)]\n\ncarts[ , uniqueN(product_id)/.N, by = user_id][ , hist(V1)]\n",
+    "created" : 1495671828233.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1171104113",
+    "id" : "77A46DF8",
+    "lastKnownWriteTime" : 1495669272,
+    "last_content_update" : 1495742121106,
+    "path" : "~/instacart/exploration.R",
+    "project_path" : "exploration.R",
+    "properties" : {
+        "source_window_id" : "wrys8gk56ma05"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

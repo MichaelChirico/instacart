@@ -1,0 +1,9 @@
+{
+    "path" : "~/instacart",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}
